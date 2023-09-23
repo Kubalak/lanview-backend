@@ -6,26 +6,22 @@ from .models import Ticket
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from .serializers import UserSerializer, DetailedUserSerializer
-from .utils import isNotAuthenticated, isAuthenticated, Unauthorized401, DataResponse
+from .utils import isNotAuthenticated, isAuthenticated, Unauthorized401, DataResponse, check_login
 import traceback
 
 # Create your views here.
 
 @api_view(['GET'])
-def index(request):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
+@check_login
+def index(request):    
     users = User.objects.all()
     data = UserSerializer(users, many=True).data
     return DataResponse(data, "users")
 
 
 @api_view(['POST'])
+@check_login
 def add(request: HttpRequest):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
     if 'username' not in request.POST or 'email' not in request.POST or 'password' not in request.POST:
         return DataResponse("Missing required fields!","error", status=400)
     try:
@@ -43,23 +39,19 @@ def add(request: HttpRequest):
         return DataResponse("Failed to create new user!","error", status=400)
 
 @api_view(['GET'])
-def get(request, id):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
+@check_login
+def get(request, id):    
     user = User.objects.filter(pk=id).first()
     return JsonResponse({"user": DetailedUserSerializer(user).data})
 
-def set(request, id):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
+@api_view(['PUT'])
+@check_login
+def set(request, id):    
     return HttpResponse("OK")
 
-def delete(request, id):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
+@api_view(['POST'])
+@check_login
+def delete(request, id):   
     return HttpResponse("OK")
 
 
@@ -85,10 +77,8 @@ def login(request: HttpRequest):
         return JsonResponse({"error": "Request failed"}, status=400)
 
 @api_view(['GET'])
-def current(request):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
-    
+@check_login
+def current(request):    
     return DataResponse(request.user.username, "user")
 
 @api_view(["POST"])

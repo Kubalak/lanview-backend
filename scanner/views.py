@@ -6,39 +6,35 @@ from django.utils.timezone import now
 from .models import Host, Config
 from usermngr.models import Ticket
 from .serializers import SimpleHostSerializer, DetailedConfigSerializer, DetailedHostSerializer
-from usermngr.utils import isNotAuthenticated, Unauthorized401, DataResponse, ErrorResponse
+from usermngr.utils import isNotAuthenticated, DataResponse, ErrorResponse, check_login
 from celerytasks.tasks import is_online
 
 
 
 # Create your views here.
 @api_view(['GET'])
+@check_login
 def index(request: HttpRequest):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
     hosts = Host.objects.all().order_by('ip_address')
     return JsonResponse({"data": SimpleHostSerializer(hosts, many=True).data})
     
 
 @api_view(['GET'])
+@check_login
 def host(request, id):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
     host = Host.objects.filter(pk=id).first()
     return JsonResponse({"host": DetailedHostSerializer(host).data})
 
 
 @api_view(['GET'])
+@check_login
 def config(request):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
     config = Config.objects.all().first()
     return DataResponse(DetailedConfigSerializer(config).data, "config")
 
 @api_view(["GET"])
+@check_login
 def online(request, id):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
     host = Host.objects.filter(pk=id).first()
     if host is None:
         return DataResponse("Host does not exist!", "error", status=400)
@@ -76,9 +72,8 @@ def online(request, id):
         return DataResponse("Something went wrong", "error", status=500)
 
 @api_view(['POST'])
+@check_login
 def update(request):
-    if isNotAuthenticated(request):
-        return Unauthorized401()
     try:
         data = json.loads(request.POST['ports'])
         ranges = [*map(lambda z: (int(data[z]['low']), int(data[z]['high'])), filter(lambda z: 'low' in data[z] and 'high' in data[z], data))]
@@ -118,6 +113,5 @@ def update(request):
             info=traceback.format_exc()
         ).save()
         return ErrorResponse("Failed to process request", code=500)
-    
     
     return DataResponse('OK', 'status')

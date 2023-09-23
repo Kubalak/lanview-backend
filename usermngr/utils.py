@@ -32,3 +32,10 @@ class ErrorResponse(JsonResponse):
         Initializes JsonResponse with data labeled by `fieldname` argument.
         """
         super().__init__({"error": data}, status=code, **kwargs)
+
+def check_login(func):
+    def _check(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return func(request, *args, **kwargs)
+        return Unauthorized401()
+    return _check
