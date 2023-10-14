@@ -1,0 +1,1 @@
+sudo $(which celery) -A celerytasks worker -l INFO --autoscale=10,3

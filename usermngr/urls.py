@@ -10,4 +10,5 @@ urlpatterns = [
     path('login/', view=views.login),
     path('logout/', view=views.logout),
     path('current/', view=views.current),
+    path('perms/', view=views.permissions),
 ]

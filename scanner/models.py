@@ -22,10 +22,10 @@ class Host(models.Model):
         {'udp': {'53': {'state': 'open', ...}}, 'tcp': {'80':{'state': 'open', ...}}}
         """
         tcp = filter(lambda z: z is not None,
-            map(lambda z: z if self.tcp_services[z]["state"] == 'open' else None, self.tcp_services)
+            map(lambda z: z["port"] if z["state"] == 'open' else None, self.tcp_services)
         )
         udp = filter(lambda z: z is not None,
-            map(lambda z: z if self.udp_services[z]["state"] == 'open' else None, self.udp_services)
+            map(lambda z: z["port"] if z["state"] == 'open' else None, self.udp_services)
         )
         return {"udp":[*udp], "tcp": [*tcp]}
 
@@ -33,14 +33,14 @@ class Host(models.Model):
     @property
     def tcp(self):
         return [*filter(lambda z: z is not None,
-            map(lambda z: {"port": z,"info": self.tcp_services[z]} if self.tcp_services[z]["state"] == 'open' else None, self.tcp_services))
+            map(lambda z: z if z["state"] == 'open' else None, self.tcp_services))
         ]
         
 
     @property
     def udp(self):
         return [*filter(lambda z: z is not None,
-            map(lambda z: {"port": z,"info": self.udp_services[z]} if self.udp_services[z]["state"] == 'open' else None, self.udp_services))
+            map(lambda z: z if self.udp_services[z]["state"] == 'open' else None, self.udp_services))
         ]
 
 class Exclusion(models.Model):

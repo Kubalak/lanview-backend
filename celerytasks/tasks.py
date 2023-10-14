@@ -59,8 +59,8 @@ def scanHost(host:str):
             ip_address = host,
             mac_adress = "N/A",
             vendor = "N/A",
-            tcp_services = {},
-            udp_services = {},
+            tcp_services = [],
+            udp_services = [],
             last_seen = make_aware(datetime.now())
         ).save()
         return
@@ -72,6 +72,19 @@ def scanHost(host:str):
     if hosts.count() > 1 and mac is not None:
         hosts = hosts.filter(mac_address=mac)
     
+    tcp = []
+    udp = []
+    if "tcp" in scan:
+        tcp = [*map(lambda z: {
+            'port': z,
+            'state': scan["tcp"][z]['state'],
+            'reason': scan["tcp"][z]['reason'],
+            'name': scan["tcp"][z]['name'],
+            'product': scan["tcp"][z]['product'],
+            'version': scan["tcp"][z]['version'],
+            'extra': scan["tcp"][z]['version'],
+        }, scan["tcp"])]
+    
     try:
         if hosts.count() == 0:  
             hostinfo = Host(
@@ -79,8 +92,8 @@ def scanHost(host:str):
                 ip_address = host,
                 mac_address = scan["addresses"]["mac"] if "mac" in scan["addresses"] else "N/A",
                 vendor = scan["vendor"][scan["addresses"]["mac"]] if "mac" in scan["addresses"] and scan["addresses"]["mac"] in scan["vendor"] else "N/A",
-                tcp_services = scan["tcp"] if "tcp" in scan else {},
-                udp_services = scan["udp"] if "udp" in scan else {},
+                tcp_services = tcp,
+                udp_services = udp,
                 last_seen = make_aware(datetime.now())
             )
             hostinfo.save()
@@ -90,8 +103,8 @@ def scanHost(host:str):
                 hostinfo.mac_address = mac
             if hostinfo.vendor == "N/A":
                 hostinfo.vendor = scan["vendor"][scan["addresses"]["mac"]] if "mac" in scan["addresses"] and scan["addresses"]["mac"] in scan["vendor"] else "N/A"
-            hostinfo.tcp_services = scan["tcp"] if "tcp" in scan else {}
-            hostinfo.udp_services = scan["udp"] if "udp" in scan else {}
+            hostinfo.tcp_services = tcp
+            hostinfo.udp_services = udp
             hostinfo.last_seen = make_aware(datetime.now())
             hostinfo.save()
         else:

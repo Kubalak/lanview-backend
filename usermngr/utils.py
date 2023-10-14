@@ -1,4 +1,5 @@
 from django.http import HttpRequest, JsonResponse
+from django.core.exceptions import PermissionDenied
 
 
 def isAuthenticated(request:HttpRequest):
@@ -39,3 +40,10 @@ def check_login(func):
             return func(request, *args, **kwargs)
         return Unauthorized401()
     return _check
+
+def require_permission(func, permissions):
+    def _check_perm(request:HttpRequest, *args, **kwargs):
+        if not request.user.has_perms(permissions):
+            raise PermissionDenied
+        return func(request, *args, **kwargs)
+    return _check_perm

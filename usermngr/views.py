@@ -85,3 +85,12 @@ def current(request):
 def logout(request):
     log_out(request)
     return JsonResponse({"message": "Success"}, status=207)
+
+@api_view(["GET"])
+@check_login
+def permissions(request:HttpRequest):
+    perms = [*map(lambda z: z.split("."),request.user.get_all_permissions())]
+    permdict = {i[0]:[] for i in perms}
+    for perm in perms:
+        permdict[perm[0]] = [*permdict[perm[0]], perm[1]]
+    return DataResponse(permdict, "permissions")

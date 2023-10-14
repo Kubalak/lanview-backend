@@ -8,6 +8,7 @@ from usermngr.models import Ticket
 from .serializers import SimpleHostSerializer, DetailedConfigSerializer, DetailedHostSerializer
 from usermngr.utils import isNotAuthenticated, DataResponse, ErrorResponse, check_login
 from celerytasks.tasks import is_online
+from . import splitp
 
 
 
@@ -64,11 +65,11 @@ def online(request, id):
             return DataResponse(True, "online")
         return DataResponse(False, "online")
     except Exception as e:
-        Ticket(
-            name=str(e),
-            context=__file__,
-            info=traceback.format_exc()
-        ).save()
+        # Ticket(
+        #     name=str(e),
+        #     context=__file__,
+        #     info=traceback.format_exc()
+        # ).save()
         return DataResponse("Something went wrong", "error", status=500)
 
 @api_view(['POST'])
@@ -78,7 +79,6 @@ def update(request):
         data = json.loads(request.POST['ports'])
         ranges = [*map(lambda z: (int(data[z]['low']), int(data[z]['high'])), filter(lambda z: 'low' in data[z] and 'high' in data[z], data))]
         ports = [*map(lambda z: int(data[z]['port']), filter(lambda z: 'port' in data[z], data))]
-        print(ranges, ports, sep='\n')
         full_ranges = [*map(lambda z: [*range(z[0], z[1] + 1)], ranges)]
         all_ports = []
         for rng in full_ranges:
@@ -89,23 +89,27 @@ def update(request):
         all_ports.sort()
         ranges = []
         ports = []
+        # start = now()
         
+        # i = 0
+        # while i < len(all_ports):
+        #     j = i + 1
+        #     while j < len(all_ports) and all_ports[j] - all_ports[j - 1] == 1:
+        #         j += 1
+            
+        #     if j == i + 1:
+        #         ports.append(all_ports[i])
+        #         i += 1
+        #     else:
+        #         ranges.append((all_ports[i], all_ports[j - 1]))
+        #         i = j
+
+        # start = now()
+        result = splitp.splitp(all_ports)
+        conf = Config.objects.all().first()
+        conf.udp_ports = result            
+        conf.save()
         
-        i = 0
-        while i < len(all_ports):
-            j = i + 1
-            while j < len(all_ports) and all_ports[j] - all_ports[j - 1] == 1:
-                j += 1
-            
-            if j == i + 1:
-                ports.append(all_ports[i])
-                i += 1
-            else:
-                ranges.append((all_ports[i], all_ports[j - 1]))
-                i = j
-        print(ports)
-        print(ranges)
-            
     except Exception as e:
         Ticket(
             name=str(e),

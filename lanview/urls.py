@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 # import os
 # import time
 # import subprocess
@@ -37,11 +38,14 @@ from django.urls import path, include
 #         'build': __build__
 #     }, status=200)
 
+def index(request):
+    return JsonResponse({"message": "OK"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('usermngr.urls')),
     path('api/scanner/', include('scanner.urls')),
+    path('', index)
     # path('api/version/', view=version),
 ]
 
