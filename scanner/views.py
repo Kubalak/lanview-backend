@@ -41,7 +41,7 @@ def online(request, id):
         return DataResponse("Host does not exist!", "error", status=400)
     
     curtime = now()
-    delta = curtime - host.last_seen
+    delta = curtime - host.last_checked
     if delta.total_seconds() <= 300: # If host has been online less or equal than 5 minutes ago
         return DataResponse(True, "online")
     
@@ -60,9 +60,10 @@ def online(request, id):
             return DataResponse("n/a", "online", status=204)
     
         if task.get():
-            host.last_seen = now()
+            host.last_checked = host.last_seen = now()
             host.save()
             return DataResponse(True, "online")
+        host.last_checked = now()
         return DataResponse(False, "online")
     except Exception as e:
         # Ticket(

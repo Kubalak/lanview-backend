@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils.timezone import now
 
 # Create your models here.
 
@@ -10,7 +11,9 @@ class Host(models.Model):
     vendor = models.CharField(max_length=128)
     tcp_services = models.JSONField()
     udp_services = models.JSONField()
-    last_seen = models.DateTimeField()
+    first_seen = models.DateTimeField(default=now)
+    last_seen = models.DateTimeField(default=now)
+    last_checked = models.DateTimeField(default=now)
     
     
     @property
