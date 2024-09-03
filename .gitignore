@@ -160,3 +160,6 @@ cython_debug/
 
 # VS Code settings
 .vscode/
+
+# Local files
+.local
